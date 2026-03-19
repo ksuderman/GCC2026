@@ -419,6 +419,7 @@
         <li>spaCy: choose from 70+ models across 25+ languages in multiple sizes</li>
       </ul>
     </div>
+
   </div>
 
   <!-- COLUMN 3 -->
@@ -472,16 +473,27 @@
       </ul>
     </div>
 
-    <div class="card">
-      <h2>Availability</h2>
-      <p>All tools and data managers are available on the <strong>Galaxy Toolshed</strong> under owner <strong>ksuderman</strong>:</p>
-      <ul>
-        <li><span class="tool-name">stanford_corenlp</span> &mdash; CoreNLP tool wrapper</li>
-        <li><span class="tool-name">spacy_nlp</span> &mdash; spaCy tool wrapper</li>
-        <li><span class="tool-name">data_manager_corenlp_models</span></li>
-        <li><span class="tool-name">data_manager_spacy_models</span></li>
-      </ul>
-    </div>
+  </div>
+
+  <!-- Bottom row -->
+  <div class="card" style="grid-column: 1 / 3;">
+    <h2>Why Not Just Use an LLM?</h2>
+    <ul>
+      <li><strong>Reproducibility</strong> &mdash; CoreNLP and spaCy produce identical results on every run. LLMs are non-deterministic: the same prompt can yield different entity tags or miss entities across runs. For citable, replicable research this matters.</li>
+      <li><strong>Structured output</strong> &mdash; Standard NLP formats (CoNLL-U, JSON with token offsets, dependency trees) are machine-parseable and consistent. LLM output is free text requiring additional parsing with no schema guarantees.</li>
+      <li><strong>Scale and cost</strong> &mdash; Processing a 120-chapter novel or a 500-document corpus costs nothing beyond compute time. LLM APIs charge per token and are rate-limited, making large-scale text analysis expensive.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="grid-column: 3 / 4;">
+    <h2>Availability</h2>
+    <p>All tools and data managers are available on the <strong>Galaxy Toolshed</strong> under owner <strong>ksuderman</strong>:</p>
+    <ul>
+      <li><span class="tool-name">stanford_corenlp</span> &mdash; CoreNLP tool wrapper</li>
+      <li><span class="tool-name">spacy_nlp</span> &mdash; spaCy tool wrapper</li>
+      <li><span class="tool-name">data_manager_corenlp_models</span></li>
+      <li><span class="tool-name">data_manager_spacy_models</span></li>
+    </ul>
   </div>
 
 </div>
