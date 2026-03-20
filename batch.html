@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dispatching Galaxy Jobs to Google Batch - GCC2026 Poster</title>
+<style>
+  /* Flexible version: scales to browser window instead of fixed 48x36in */
+  @page { size: 48in 36in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: clamp(8px, 1.1vw, 22px); }
+
+  body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #edf1f5;
+    color: #2c2c2c;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 1.5rem;
+    gap: 1.2rem;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #0C5294;
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 0.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 0.35rem solid #4da6e8;
+  }
+  .header .logo-left img { height: 7.5rem; object-fit: contain; }
+  .header .title-area { text-align: center; }
+  .header h1 { font-size: 3.6rem; font-weight: 700; line-height: 1.15; margin-bottom: 0.3rem; }
+  .header .subtitle { font-size: 1.6rem; font-weight: 300; opacity: 0.85; }
+  .header .authors { font-size: 1.4rem; margin-top: 0.6rem; font-weight: 500; }
+  .header .emails { font-size: 1.1rem; opacity: 0.7; margin-top: 0.15rem; }
+  .header .affiliations { font-size: 1.2rem; opacity: 0.7; margin-top: 0.15rem; }
+  .header .logo-right {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  }
+  .header .logo-right .conf { font-size: 2.3rem; font-weight: 700; color: #4da6e8; text-align: center; }
+  .header .logo-right .conf-sub { font-size: 1.3rem; opacity: 0.7; text-align: center; }
+
+  /* ── Main content ── */
+  .content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  .card {
+    background: white;
+    border-radius: 0.4rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 0.25rem solid #0C5294;
+  }
+  .card h2 {
+    font-size: 1.9rem; color: #0C5294;
+    margin-bottom: 0.7rem; padding-bottom: 0.4rem;
+    border-bottom: 2px solid #c8d6e5;
+  }
+  .card p, .card li { font-size: 1.3rem; line-height: 1.45; margin-bottom: 0.4rem; }
+  .card ul { padding-left: 1.3rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+
+  .highlight-text { font-weight: 700; color: #0C5294; }
+  .tool-name { font-weight: 700; color: #4a4a4a; }
+
+  .lang-tag {
+    background: #e0ecf7; color: #0a3d6e;
+    padding: 0.15rem 0.45rem; border-radius: 0.2rem;
+    font-size: 1.05rem; font-weight: 500;
+  }
+  .fmt-tag {
+    background: #e8e8e4; color: #4a4a4a;
+    padding: 0.15rem 0.45rem; border-radius: 0.2rem;
+    font-size: 1.05rem; font-weight: 500;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.4rem 0; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: #f0f4f8; border-radius: 0.35rem;
+    padding: 0.8rem; margin: 0.5rem 0; text-align: center;
+  }
+  .arch-row { display: flex; justify-content: center; gap: 0.5rem; margin: 0.25rem 0; flex-wrap: wrap; }
+  .arch-box {
+    background: white; border: 2px solid #4a4a4a; border-radius: 0.25rem;
+    padding: 0.3rem 0.7rem; font-size: 1.05rem; font-weight: 500;
+  }
+  .arch-box.galaxy { background: #0C5294; color: white; }
+  .arch-box.gcp { background: #4da6e8; color: white; }
+  .arch-box.pulsar { background: #6b6b6b; color: white; }
+  .arch-box.nfs { background: #e0ecf7; color: #0a3d6e; border-color: #0C5294; }
+  .arch-arrow { font-size: 1.3rem; color: #999; margin: 0.1rem 0; }
+  .arch-label { font-size: 0.95rem; color: #6b6b6b; font-style: italic; margin: 0.1rem 0; }
+
+  /* Workflow boxes */
+  .workflow-box {
+    background: #f0f4f8; border: 2px solid #b0c4d8;
+    border-radius: 0.35rem; padding: 0.8rem; margin: 0.5rem 0;
+  }
+  .workflow-box .step {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin: 0.25rem 0; font-size: 1.15rem;
+  }
+  .workflow-box .arrow { color: #0C5294; font-size: 1.5rem; font-weight: 700; }
+  .workflow-box .step-num {
+    background: #0C5294; color: white;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem; flex-shrink: 0;
+  }
+
+  /* Data tables */
+  .data-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 1.15rem; margin: 0.5rem 0;
+  }
+  .data-table th {
+    background: #0C5294; color: white;
+    padding: 0.3rem 0.5rem; text-align: left;
+    font-weight: 600;
+  }
+  .data-table td {
+    padding: 0.2rem 0.5rem;
+    border-bottom: 1px solid #c8d6e5;
+  }
+  .data-table tr:nth-child(even) { background: #f5f8fb; }
+  .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .data-table .winner { color: #0C5294; font-weight: 700; }
+  .data-table .loser { color: #999; }
+  .data-table.small { font-size: 1.05rem; }
+
+  /* Bar charts (CSS only) */
+  .bar-chart { margin: 0.5rem 0; }
+  .bar-row { display: flex; align-items: center; gap: 0.35rem; margin: 0.2rem 0; font-size: 1.05rem; }
+  .bar-label { width: 4.5rem; text-align: right; font-weight: 600; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 1.5rem; background: #edf1f5; border-radius: 0.15rem; position: relative; }
+  .bar-fill { height: 100%; border-radius: 0.15rem; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.35rem; color: white; font-weight: 600; font-size: 0.95rem; }
+  .bar-fill.batch { background: #0C5294; }
+  .bar-fill.pulsar { background: #4da6e8; }
+  .bar-fill.overhead { background: rgba(12,82,148,0.3); }
+  .bar-fill.overhead-p { background: rgba(77,166,232,0.35); color: #0a3d6e; }
+  .bar-value { width: 3.5rem; text-align: left; font-size: 0.95rem; color: #6b6b6b; flex-shrink: 0; }
+
+  /* Stacked bar */
+  .stacked-bar { display: flex; height: 1.5rem; border-radius: 0.15rem; overflow: hidden; }
+  .stacked-seg { display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; }
+
+  /* Comparison grid */
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.5rem; margin: 0.5rem 0;
+  }
+  .compare-box {
+    background: #f0f4f8; border: 2px solid #b0c4d8;
+    border-radius: 0.3rem; padding: 0.7rem; text-align: center;
+  }
+  .compare-box .metric-value { font-size: 2.2rem; font-weight: 700; }
+  .compare-box .metric-label { font-size: 0.95rem; color: #6b6b6b; margin-top: 0.1rem; }
+  .compare-box.gold { border-color: #4da6e8; }
+  .compare-box.gold .metric-value { color: #4da6e8; }
+  .compare-box.dark .metric-value { color: #0C5294; }
+
+  /* Legend swatches */
+  .legend-swatch {
+    display: inline-block; width: 0.8rem; height: 0.55rem; vertical-align: middle;
+  }
+
+  /* Footer */
+  .footer {
+    background: #0C5294; color: white;
+    padding: 1rem 1.8rem; border-radius: 0.4rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.15rem;
+    border-top: 0.25rem solid #4da6e8;
+  }
+  .footer a { color: #4da6e8; text-decoration: none; }
+  .footer .logos { display: flex; align-items: center; gap: 1.5rem; }
+  .footer .logos img { height: 4rem; object-fit: contain; }
+  .footer .logos img.uni-logo {
+    background: white; padding: 0.35rem 0.7rem; border-radius: 0.35rem;
+  }
+
+  /* Responsive: stack columns on narrow screens */
+  @media (max-width: 900px) {
+    .content { grid-template-columns: 1fr; }
+    .card[style*="grid-column"] { grid-column: auto !important; }
+    .header { grid-template-columns: 1fr; text-align: center; gap: 1rem; }
+    .header .logo-left, .header .logo-right { justify-self: center; }
+    .footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+
+  /* Print: restore fixed poster size */
+  @media print {
+    html { font-size: 22px; }
+    body { width: 48in; height: 36in; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-left">
+    <img src="images/anvil_logo.png" alt="AnVIL" style="background:white; padding:0.35rem 0.7rem; border-radius:0.35rem;">
+  </div>
+  <div class="title-area">
+    <h1>Dispatching Galaxy Jobs to Google Batch</h1>
+    <div class="subtitle">Direct API vs Pulsar AMQP Sidecar: Architecture, Performance, and Cost</div>
+    <div class="authors">Keith Suderman &middot; John Chilton</div>
+    <div class="emails">suderman@jhu.edu &middot; jmchilton@gmail.com</div>
+    <div class="affiliations">Johns Hopkins University &middot; Penn State University</div>
+  </div>
+  <div class="logo-right">
+    <div class="conf">GCC2026</div>
+    <div class="conf-sub">June 22&ndash;24, 2026</div>
+    <div class="conf-sub">Clermont-Ferrand, France</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- COLUMN 1 -->
+  <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+
+    <div class="card">
+      <h2>Motivation</h2>
+      <p>Galaxy deployments on Kubernetes typically run jobs within the cluster using the <span class="tool-name">K8s runner</span>. This limits scalability: cluster nodes are fixed, and large bioinformatics workflows compete for shared resources.</p>
+      <p><span class="highlight-text">Google Cloud Batch</span> offers an alternative: jobs run on dynamically provisioned VMs with per-tool resource sizing, CVMFS reference data access, and no cluster capacity constraints.</p>
+      <p>We implemented two runners and benchmarked them on a 12-step variant analysis workflow across three dataset sizes (2GB, 5GB, 10GB).</p>
+    </div>
+
+    <div class="card">
+      <h2>Direct GCP Batch Runner</h2>
+      <p>A new <span class="tool-name">GoogleCloudBatchJobRunner</span> integrated into Galaxy's job runner framework.</p>
+      <div class="arch-diagram">
+        <div class="arch-row">
+          <div class="arch-box galaxy">Galaxy Job Handler</div>
+        </div>
+        <div class="arch-arrow">&darr; GCP Batch API</div>
+        <div class="arch-row">
+          <div class="arch-box gcp">GCP Batch VM</div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-row">
+          <div class="arch-box">Docker Container</div>
+          <div class="arch-box nfs">NFS Volume</div>
+        </div>
+      </div>
+      <ul>
+        <li>Galaxy submits directly to the <strong>GCP Batch API</strong></li>
+        <li>File staging via <strong>NFS</strong> shared between Galaxy and Batch VMs</li>
+        <li>VM image with <strong>CVMFS pre-installed</strong> for reference data</li>
+        <li>Automatic <strong>machine type selection</strong> based on tool resource requirements</li>
+        <li>Configurable via <strong>TPV</strong> (Total Perspective Vortex) job routing</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Pulsar GCP Batch Runner</h2>
+      <p>The <span class="tool-name">PulsarGcpBatchJobRunner</span> dispatches through a Pulsar sidecar on each Batch VM.</p>
+      <div class="arch-diagram">
+        <div class="arch-row">
+          <div class="arch-box galaxy">Galaxy Job Handler</div>
+        </div>
+        <div class="arch-arrow">&darr; AMQP</div>
+        <div class="arch-row">
+          <div class="arch-box gcp">GCP Batch VM</div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-row">
+          <div class="arch-box pulsar">Pulsar Sidecar</div>
+          <div class="arch-box">Tool Container</div>
+        </div>
+        <div class="arch-label">HTTP transfer &middot; Local SSD staging</div>
+      </div>
+      <ul>
+        <li>Galaxy sends AMQP message; Pulsar <strong>stages inputs via HTTP</strong></li>
+        <li>Tool runs in container; Pulsar <strong>collects outputs and sends AMQP callback</strong></li>
+        <li>Each VM provisions <strong>375GB local SSD</strong> for I/O-intensive tools</li>
+        <li><strong>No NFS dependency</strong> &mdash; fully decoupled file transfer</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- COLUMN 2 -->
+  <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+
+    <div class="card">
+      <h2>Wall Clock Performance</h2>
+      <p>Variant analysis workflow (12 tools, 3 dataset sizes). Direct Batch is <span class="highlight-text">10&ndash;14% faster</span> end-to-end due to lower scheduling overhead.</p>
+
+      <!-- 10GB -->
+      <p style="font-weight:700; margin-top:0.5rem;">10GB Dataset</p>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">Batch</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill batch" style="width:86%">502m</div>
+              <div class="stacked-seg bar-fill overhead" style="width:4%"></div>
+            </div>
+          </div>
+          <div class="bar-value">523m</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Pulsar</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill pulsar" style="width:77%">450m</div>
+              <div class="stacked-seg bar-fill overhead-p" style="width:23%">133m</div>
+            </div>
+          </div>
+          <div class="bar-value">583m</div>
+        </div>
+      </div>
+
+      <!-- 5GB -->
+      <p style="font-weight:700; margin-top:0.35rem;">5GB Dataset</p>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">Batch</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill batch" style="width:86%">320m</div>
+              <div class="stacked-seg bar-fill overhead" style="width:5%"></div>
+            </div>
+          </div>
+          <div class="bar-value">339m</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Pulsar</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill pulsar" style="width:74%">276m</div>
+              <div class="stacked-seg bar-fill overhead-p" style="width:26%">97m</div>
+            </div>
+          </div>
+          <div class="bar-value">372m</div>
+        </div>
+      </div>
+
+      <!-- 2GB -->
+      <p style="font-weight:700; margin-top:0.35rem;">2GB Dataset</p>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">Batch</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill batch" style="width:79%">183m</div>
+              <div class="stacked-seg bar-fill overhead" style="width:8%"></div>
+            </div>
+          </div>
+          <div class="bar-value">202m</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Pulsar</div>
+          <div class="bar-track">
+            <div class="stacked-bar">
+              <div class="stacked-seg bar-fill pulsar" style="width:67%">155m</div>
+              <div class="stacked-seg bar-fill overhead-p" style="width:33%">75m</div>
+            </div>
+          </div>
+          <div class="bar-value">231m</div>
+        </div>
+      </div>
+
+      <p style="font-size:1.05rem; color:#6b6b6b; margin-top:0.35rem;">
+        <span class="legend-swatch" style="background:#0C5294;"></span> / <span class="legend-swatch" style="background:#4da6e8;"></span> Compute &nbsp;&nbsp;
+        <span class="legend-swatch" style="background:rgba(12,82,148,0.3);"></span> / <span class="legend-swatch" style="background:rgba(77,166,232,0.35);"></span> Scheduling overhead
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Scheduling Overhead</h2>
+      <p>The dominant factor in Pulsar's slower wall clock: <span class="highlight-text">AMQP messaging + HTTP file staging</span> adds 5&ndash;10 minutes per workflow step.</p>
+      <div class="compare-grid">
+        <div class="compare-box dark">
+          <div class="metric-value">1.6 min</div>
+          <div class="metric-label">Batch avg/step</div>
+        </div>
+        <div class="compare-box gold">
+          <div class="metric-value">8.5 min</div>
+          <div class="metric-label">Pulsar avg/step</div>
+        </div>
+        <div class="compare-box dark">
+          <div class="metric-value">4&ndash;9%</div>
+          <div class="metric-label">Batch overhead share</div>
+        </div>
+        <div class="compare-box gold">
+          <div class="metric-value">23&ndash;33%</div>
+          <div class="metric-label">Pulsar overhead share</div>
+        </div>
+      </div>
+      <p>Overhead is inherent to the AMQP sidecar architecture. It dominates for short multi-step workflows but becomes negligible for long-running single-step jobs.</p>
+    </div>
+
+    <div class="card">
+      <h2>Cost Analysis</h2>
+      <p>GCP N2 on-demand pricing, us-east4 region. 72 jobs (36 per runner). Wallclock = full VM lifetime (what users pay).</p>
+      <div class="compare-grid">
+        <div class="compare-box dark">
+          <div class="metric-value">$16.86</div>
+          <div class="metric-label">Batch wallclock (111.5 VM-hrs)</div>
+        </div>
+        <div class="compare-box gold">
+          <div class="metric-value">$21.22</div>
+          <div class="metric-label">Pulsar wallclock (123.8 VM-hrs)</div>
+        </div>
+        <div class="compare-box dark">
+          <div class="metric-value">$3.52</div>
+          <div class="metric-label">Batch compute-only</div>
+        </div>
+        <div class="compare-box gold">
+          <div class="metric-value">$3.43</div>
+          <div class="metric-label">Pulsar compute-only</div>
+        </div>
+      </div>
+      <p>Batch is <span class="highlight-text">26% cheaper</span> at wallclock rates. Compute-only costs are nearly identical &mdash; the difference is entirely <strong>overhead</strong> (VM provisioning, staging, scheduling).</p>
+      <table class="data-table small">
+        <tr><th>Component</th><th class="num">Batch</th><th class="num">Pulsar</th><th class="num">% of Total</th></tr>
+        <tr><td>vCPU</td><td class="num">$9.45</td><td class="num">$10.47</td><td class="num">52%</td></tr>
+        <tr><td>Memory</td><td class="num">$6.95</td><td class="num">$7.73</td><td class="num">39%</td></tr>
+        <tr><td>Local SSD</td><td class="num">$0.00</td><td class="num">$2.51</td><td class="num">7%</td></tr>
+        <tr><td>Boot Disk</td><td class="num">$0.46</td><td class="num">$0.52</td><td class="num">3%</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- COLUMN 3 -->
+  <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+
+    <div class="card">
+      <h2>Compute Time (10GB)</h2>
+      <p>Pulsar is <span class="highlight-text">10% faster</span> in raw compute. Local SSD staging benefits I/O-bound tools significantly.</p>
+      <table class="data-table">
+        <tr><th>Tool</th><th class="num">Batch</th><th class="num">Pulsar</th><th class="num">Diff</th></tr>
+        <tr><td>lofreq_call</td><td class="num">14529s</td><td class="num">14527s</td><td class="num loser">0%</td></tr>
+        <tr><td>bwa_mem</td><td class="num">8617s</td><td class="num">8237s</td><td class="num winner">-4%</td></tr>
+        <tr><td>picard_MarkDup</td><td class="num">2527s</td><td class="num">1363s</td><td class="num winner">-46%</td></tr>
+        <tr><td>lofreq_viterbi</td><td class="num">1215s</td><td class="num">1044s</td><td class="num winner">-14%</td></tr>
+        <tr><td>snpEff_build</td><td class="num">1187s</td><td class="num">177s</td><td class="num winner">-85%</td></tr>
+        <tr><td>lofreq_indelqual</td><td class="num">668s</td><td class="num">490s</td><td class="num winner">-27%</td></tr>
+        <tr><td>fastp</td><td class="num">482s</td><td class="num">477s</td><td class="num loser">-1%</td></tr>
+        <tr><td>samtools_view</td><td class="num">621s</td><td class="num">455s</td><td class="num winner">-27%</td></tr>
+        <tr><td>samtools_stats</td><td class="num">235s</td><td class="num">204s</td><td class="num winner">-13%</td></tr>
+        <tr><td style="font-weight:700">Total</td><td class="num" style="font-weight:700">30098s</td><td class="num" style="font-weight:700">26983s</td><td class="num winner" style="font-weight:700">-10%</td></tr>
+      </table>
+      <p style="font-size:1.05rem; color:#6b6b6b;">Largest gains in I/O-bound tools: picard_MarkDuplicates (-46%), snpEff_build (-85%), samtools_view (-27%)</p>
+    </div>
+
+    <div class="card">
+      <h2>Infrastructure</h2>
+      <div class="workflow-box">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div><strong>GCE VM</strong> running RKE2 Kubernetes cluster</div>
+        </div>
+        <div class="step"><div class="arrow">&darr;</div></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div><strong>Galaxy 26.1</strong> deployed via Helm chart</div>
+        </div>
+        <div class="step"><div class="arrow">&darr;</div></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div><strong>TPV</strong> routes tools to Batch or Pulsar destinations</div>
+        </div>
+        <div class="step"><div class="arrow">&darr;</div></div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div><strong>GCP Batch</strong> provisions VMs in us-east4 with CVMFS</div>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="lang-tag">Galaxy 26.1</span>
+        <span class="lang-tag">RKE2</span>
+        <span class="lang-tag">Helm</span>
+        <span class="lang-tag">GCP Batch</span>
+        <span class="lang-tag">CVMFS</span>
+        <span class="fmt-tag">NFS (Batch)</span>
+        <span class="fmt-tag">HTTP + SSD (Pulsar)</span>
+        <span class="fmt-tag">AMQP (RabbitMQ)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Key Findings</h2>
+      <ul>
+        <li><strong>Direct Batch is faster end-to-end</strong> (10&ndash;14%) due to minimal scheduling overhead (NFS eliminates file transfer)</li>
+        <li><strong>Pulsar computes faster</strong> (10&ndash;15%) thanks to local SSD I/O, especially for disk-bound tools</li>
+        <li><strong>Batch is 26% cheaper</strong> at wallclock rates ($16.86 vs $21.22) &mdash; Pulsar's overhead + local SSD erases its compute savings</li>
+        <li><strong>Compute-only costs are equal</strong> ($3.52 vs $3.43) &mdash; overhead ratio is 4.8x (Batch) vs 6.2x (Pulsar)</li>
+        <li><strong>Both runners auto-size VMs</strong> per tool via TPV resource parameters</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Bottom spanning cards -->
+  <div class="card" style="grid-column: 1 / 3;">
+    <h2>When to Use Which Runner</h2>
+    <table class="data-table">
+      <tr><th>Scenario</th><th>Recommended</th><th>Why</th></tr>
+      <tr><td>Multi-step workflows with many short jobs</td><td><strong>Direct Batch</strong></td><td>Lower per-step overhead dominates total wall clock</td></tr>
+      <tr><td>Long-running, I/O-intensive single jobs</td><td><strong>Pulsar</strong></td><td>Local SSD provides faster I/O; overhead amortized over runtime</td></tr>
+      <tr><td>No shared filesystem available</td><td><strong>Pulsar</strong></td><td>HTTP transfer eliminates NFS dependency</td></tr>
+      <tr><td>Cost-sensitive workloads</td><td><strong>Direct Batch</strong></td><td>26% cheaper at wallclock rates; lower overhead dominates cost</td></tr>
+      <tr><td>Simplest deployment</td><td><strong>Direct Batch</strong></td><td>No RabbitMQ, no Pulsar sidecar image, fewer moving parts</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="grid-column: 3 / 4;">
+    <h2>Future Work</h2>
+    <ul>
+      <li>GCS object store integration to replace NFS for the direct Batch runner</li>
+      <li>Benchmark additional workflows (RNASeq, ChIP-Seq) at larger scales</li>
+      <li>Spot/preemptible VM support for further cost reduction</li>
+      <li>Hybrid routing: automatically select runner per-tool based on I/O characteristics</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="logos">
+    <img src="images/jhu_logo_trimmed.png" alt="Johns Hopkins University" class="uni-logo">
+    <img src="images/psu_logo.png" alt="Penn State University" class="uni-logo">
+  </div>
+  <div class="center-logo">
+    <img src="images/galaxy_logo_white.png" alt="Galaxy Project" style="height:4rem; object-fit:contain;">
+  </div>
+  <div>
+    <a href="https://galaxyproject.org">galaxyproject.org</a> &middot;
+    <a href="https://github.com/galaxyproject/galaxy">github.com/galaxyproject/galaxy</a> &middot;
+    suderman@jhu.edu &middot; jmchilton@gmail.com
+  </div>
+</div>
+
+</body>
+</html>
