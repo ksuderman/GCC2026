@@ -95,6 +95,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0.3in;
+    grid-auto-rows: min-content;
   }
 
   .card {
@@ -272,6 +273,42 @@
     font-style: italic;
   }
 
+  /* Workflow images styling */
+  .workflow-image {
+    width: 100%;
+    height: auto;
+    border-radius: 0.08in;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border: 1px solid #e0ddd0;
+  }
+
+  /* Enhanced styling for full-width workflow section */
+  .workflow-full-width {
+    background: linear-gradient(135deg, #faf9f5 0%, #f5f4ee 100%);
+    border: 2px solid #c9b613;
+    border-radius: 0.15in;
+    padding: 0.5in;
+  }
+
+  .workflow-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2in;
+  }
+
+  .workflow-text-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    padding: 0 0.2in;
+  }
+
+  .workflow-text-center p {
+    font-size: 26pt;
+    line-height: 1.5;
+  }
+
   /* ── Footer ── */
   .footer {
     background: #2c2c2c;
@@ -362,19 +399,19 @@
         <div class="tool-card">
           <h3>Stanford CoreNLP</h3>
           <p>Java-based toolkit with coreference resolution and sentiment analysis. <strong>8 languages</strong> including English, Chinese, Arabic.</p>
-          <div class="version">v4.5.10+galaxy4</div>
+          <div class="version">v4.5.10+galaxy0</div>
         </div>
 
         <div class="tool-card">
           <h3>spaCy</h3>
           <p>Fast, production-ready Python NLP. <strong>25+ languages</strong> with sm/md/lg/trf model variants.</p>
-          <div class="version">v3.8.11+galaxy4</div>
+          <div class="version">v3.8.11+galaxy0</div>
         </div>
 
         <div class="tool-card">
           <h3>Stanford Stanza</h3>
           <p>Neural NLP pipeline supporting <strong>80+ languages</strong> with CPU-optimized models.</p>
-          <div class="version">v1.11.1+galaxy4</div>
+          <div class="version">v1.11.1+galaxy0</div>
         </div>
 
         <div class="tool-card">
@@ -386,7 +423,7 @@
         <div class="tool-card">
           <h3>Entity Geocoding</h3>
           <p>Convert named entities to GeoJSON for interactive map visualization via OpenLayers.</p>
-          <div class="version">v1.0.0+galaxy1</div>
+          <div class="version">v1.0.0+galaxy0</div>
         </div>
 
         <div class="tool-card">
@@ -452,6 +489,27 @@
       <p>Structured outputs enable downstream processing with other Galaxy tools or external analysis pipelines. Enhanced output includes proper Galaxy datatypes for seamless tool chaining.</p>
     </div>
 
+  </div>
+
+  <!-- COLUMN 3 -->
+  <div style="display: flex; flex-direction: column; gap: 0.3in;">
+    <div class="card">
+      <h2>Use Cases</h2>
+      <ul>
+        <li><strong>Literary analysis</strong> &mdash; extract characters and relationships from novels across languages</li>
+        <li><strong>Historical research</strong> &mdash; NER on archival documents to identify people, places, and dates</li>
+        <li><strong>Sentiment analysis</strong> &mdash; track emotional arcs in literary works or political discourse</li>
+        <li><strong>Multilingual studies</strong> &mdash; compare NLP annotations across translations of the same text</li>
+        <li><strong>Corpus linguistics</strong> &mdash; POS tagging and dependency parsing at scale</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Availability</h2>
+      <p>All NLP tools and data managers have been <span class="highlight-text">submitted to the Galaxy Tools IUC</span> for community integration and will be available through the Galaxy Toolshed upon acceptance.</p>
+      <p>The comprehensive toolkit includes six NLP analysis tools (Stanford CoreNLP, spaCy, Stanza, co-occurrence analysis, entity geocoding, and VADER sentiment) plus three data managers for downloading language models.</p>
+    </div>
+
     <div class="card">
       <h2>For Administrators</h2>
       <ul>
@@ -467,84 +525,63 @@
 
   </div>
 
-  <!-- COLUMN 3 -->
-  <div style="display: flex; flex-direction: column; gap: 0.3in;">
-    <div class="card">
-      <h2>Example Workflow</h2>
-      <p><strong>Complete NLP Pipeline: Text to Geographic Insights</strong></p>
-      <div class="workflow-box">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div>Upload corpus of historical travel writing</div>
+  <!-- Workflow Section (3 columns - full width) -->
+  <div class="card workflow-full-width" style="grid-column: 1 / 4;">
+    <h2>Example Workflow: Named Entity Recognition of Nixon's Presidential Speeches</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4in; align-items: start; margin-top: 0.25in;">
+
+      <!-- Left: Text sample and workflow diagram -->
+      <div class="workflow-column">
+        <div style="text-align: center;">
+          <img src="images/Nixon_text.png" alt="Nixon Speech Text Sample" class="workflow-image" style="max-height: 4in;">
         </div>
-        <div class="step"><div class="arrow">&darr;</div></div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div>Run Stanza NER to extract people, places, dates</div>
-        </div>
-        <div class="step"><div class="arrow">&darr;</div></div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div>Analyze location co-occurrence patterns</div>
-        </div>
-        <div class="step"><div class="arrow">&darr;</div></div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div>Geocode places for interactive map</div>
-        </div>
-        <div class="step"><div class="arrow">&darr;</div></div>
-        <div class="step">
-          <div class="step-num">5</div>
-          <div>Assess sentiment by location with VADER</div>
+
+        <div style="text-align: center; margin-top: 0.25in;">
+          <img src="images/NER_WF.png" alt="Named Entity Recognition Workflow" class="workflow-image" style="max-height: 4.5in;">
         </div>
       </div>
-      <p>No programming required &mdash; the entire analysis from upload to visualisation on the map runs as a reproducible Galaxy workflow.</p>
+
+      <!-- Center: Analysis explanation -->
+      <div class="workflow-text-center">
+        <p>Applying Named Entity Recognition to Nixon's presidential speeches reveals clear alignment with Cold War rhetoric. As the American president, the <span class="highlight-text">United States of America</span> is naturally his most often referenced location.</p>
+
+        <p style="margin-top: 0.2in;">The other locations, <span class="highlight-text">Moscow and Beijing</span>, are used as pars pro toto to stand in for Russia and China, the US's most prominent geopolitical rivals during the Cold War.</p>
+
+        <p style="margin-top: 0.2in;"><strong>Impact:</strong> The workflow can quickly extract this information and provide geographic visualizations that guide further close reading and reveal patterns in political rhetoric.</p>
+      </div>
+
+      <!-- Right: Results table and map -->
+      <div class="workflow-column">
+        <div style="text-align: center;">
+          <img src="images/Nixon_table.png" alt="Nixon NER Results Table" class="workflow-image" style="max-height: 4.5in;">
+        </div>
+
+        <div style="text-align: center; margin-top: 0.25in;">
+          <img src="images/Nixon_Map.png" alt="Geographic Visualization of Nixon Speech Locations" class="workflow-image" style="max-height: 4in;">
+        </div>
+      </div>
+
     </div>
-
-    <div class="card">
-      <h2>Use Cases</h2>
-      <ul>
-        <li><strong>Literary geography</strong> &mdash; map fictional and real places across novels with sentiment analysis</li>
-        <li><strong>Historical network analysis</strong> &mdash; extract person-to-person relationships from archival documents</li>
-        <li><strong>Multilingual corpus studies</strong> &mdash; compare themes across 80+ languages using Stanza</li>
-        <li><strong>Social media sentiment</strong> &mdash; track emotional patterns with VADER's social-optimized lexicon</li>
-        <li><strong>Interactive visualizations</strong> &mdash; GeoJSON maps and relationship networks</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Availability</h2>
-      <p>All tools and data managers are available on the <strong>Galaxy Toolshed</strong> under owner <strong>ksuderman</strong> and <span class="highlight-text">submitted to Galaxy Tools IUC</span> for community integration:</p>
-
-      <p><strong>NLP Tools:</strong></p>
-      <ul>
-        <li><span class="tool-name">stanford_corenlp</span> &mdash; CoreNLP tool wrapper</li>
-        <li><span class="tool-name">spacy_nlp</span> &mdash; spaCy tool wrapper</li>
-        <li><span class="tool-name">stanza_nlp</span> &mdash; Stanza tool wrapper</li>
-        <li><span class="tool-name">cooccurrence_analysis</span> &mdash; Word relationship analysis</li>
-        <li><span class="tool-name">geocode_entities</span> &mdash; Entity geocoding tool</li>
-        <li><span class="tool-name">vader_sentiment</span> &mdash; VADER sentiment analysis</li>
-      </ul>
-
-      <p><strong>Data Managers:</strong></p>
-      <ul>
-        <li><span class="tool-name">data_manager_corenlp_models</span></li>
-        <li><span class="tool-name">data_manager_spacy_models</span></li>
-        <li><span class="tool-name">data_manager_stanza_models</span></li>
-      </ul>
-    </div>
-
   </div>
 
-  <!-- Bottom row -->
+  <!-- Bottom row - reorganized for better space utilization -->
   <div class="card" style="grid-column: 1 / 3;">
     <h2>Why Not Just Use an LLM?</h2>
-    <ul>
-      <li><strong>Reproducibility</strong> &mdash; Traditional NLP tools produce identical results on every run. LLMs are non-deterministic: the same prompt can yield different entity tags or miss entities across runs. For citable, replicable research this matters.</li>
-      <li><strong>Structured output</strong> &mdash; Standard NLP formats (CoNLL-U, JSON with token offsets, dependency trees, GeoJSON) are machine-parseable and consistent. LLM output is free text requiring additional parsing with no schema guarantees.</li>
-      <li><strong>Scale and cost</strong> &mdash; Processing a 120-chapter novel or a 500-document corpus costs nothing beyond compute time. LLM APIs charge per token and are rate-limited, making large-scale text analysis expensive.</li>
-      <li><strong>Platform synergies</strong> &mdash; Galaxy allows you to connect the NLP tools with more than 4000 tools of your choice, encompassing the whole research life cycle and not just one substep.</li>
-    </ul>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.25in;">
+      <div>
+        <ul>
+          <li><strong>Reproducibility</strong> &mdash; Traditional NLP tools produce identical results on every run. LLMs are non-deterministic: the same prompt can yield different entity tags or miss entities across runs. For citable, replicable research this matters.</li>
+          <li><strong>Structured output</strong> &mdash; Standard NLP formats (CoNLL-U, JSON with token offsets, dependency trees, GeoJSON) are machine-parseable and consistent. LLM output is free text requiring additional parsing with no schema guarantees.</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><strong>Scale and cost</strong> &mdash; Processing a 120-chapter novel or a 500-document corpus costs nothing beyond compute time. LLM APIs charge per token and are rate-limited, making large-scale text analysis expensive.</li>
+          <li><strong>Platform synergies</strong> &mdash; Galaxy allows you to connect the NLP tools with more than 4000 tools of your choice, encompassing the whole research life cycle and not just one substep.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <div class="card" style="grid-column: 3 / 4;">
@@ -555,7 +592,7 @@
       <li>Integrate with existing OCR tools for digitized manuscript pipelines</li>
       <li>Apply existing Automatic Speech Recognition to use NLP tools on audio files</li>
       <li>Grow the <span class="highlight-text">Digital Humanities &amp; Social Sciences SIG</span></li>
-      <li>https://galaxyproject.org/community/sig/digital-humanities/</li>    
+      <li>https://galaxyproject.org/community/sig/digital-humanities/</li>
     </ul>
   </div>
 
